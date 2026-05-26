@@ -11,14 +11,14 @@ AP Model Stability/
 ├── conductances.py                           # per-model conductance lookup table
 ├── Ventricular_AP_Models/                    # the 10 ODE model implementations
 │   ├── ORd.py            # O'Hara-Rudy 2010
-│   ├── Dutta2017.py      # CiPA 2017 (Dutta et al.)
+│   ├── Dutta2017.py      # Dutta 2017 
 │   ├── TNNP06.py         # Ten Tusscher-Noble-Noble-Panfilov 2006
 │   ├── TOR2019.py        # Tomek-O'Hara-Rudy 2019
 │   ├── TOR_DCl2020.py    # TOR 2019 with dynamic chloride
 │   ├── GB.py             # Grandi-Bers 2010
 │   ├── Doste2022.py      # Doste 2022 (TOR-ORd variant with β-adrenergic signalling)
 │   ├── Doste2022_signaling.py
-│   ├── Morotti2021.py    # Morotti 2021 (CaM + CaMKII + β-AR phosphorylation modules)
+│   ├── Morotti2021.py    # Morotti 2021
 │   ├── BPS2020.py        # BPS 2020
 │   └── BPSLand2022.py    # BPS with Land 2017 contractile mechanics
 ├── Plotting/
@@ -29,7 +29,7 @@ AP Model Stability/
     ├── Paced/                     # raw paced simulation data
     ├── Unpaced/                   # raw unpaced simulation data
     ├── Paced Plots/               # paced figures
-    └── Unpaced Plots/             # unpaced figures + per-class xlsx artefacts
+    └── Unpaced Plots/             # unpaced figures + per-class analysis
 ```
 
 ## Installation
@@ -51,7 +51,7 @@ The model files use `@njit` decorators from [Numba](https://numba.pydata.org/) f
    ```
 2. Open `highthroughput_stabilisation_script.py` and edit the config block near the top:
    ```python
-   models = ["Morotti 2021", "Ten Tusscher 2006", "Grandi Bers 2010", "O'Hara Rudy 2010"]
+   models = ["Morotti 2021", "TNNP06", "GB 2010", "ORd 2010"]
    protocol = 'paced'        # or 'unpaced'
    cycles = 2000             # number of beats per simulation
    ISO_conc = 0.1            # μM isoproterenol (only used by Doste/Morotti BARS)
@@ -156,12 +156,12 @@ If you use this code, please also cite the original papers for whichever models 
 
 | Model | Citation |
 |---|---|
-| O'Hara-Rudy 2011 | O'Hara T, Virág L, Varró A, Rudy Y. *Simulation of the undiseased human cardiac ventricular action potential.* PLoS Comput Biol 2011. |
-| CiPA 2017 (Dutta et al.) | Dutta S, et al. *Optimization of an in silico cardiac cell model for proarrhythmia risk assessment.* Front Physiol 2017. |
-| Ten Tusscher 2006 | ten Tusscher KH, Panfilov AV. *Alternans and spiral breakup in a human ventricular tissue model.* Am J Physiol Heart Circ Physiol 2006. |
+| ORd 2011 | O'Hara T, Virág L, Varró A, Rudy Y. *Simulation of the undiseased human cardiac ventricular action potential.* PLoS Comput Biol 2011. |
+| Dutta 2017 | Dutta S, et al. *Optimization of an in silico cardiac cell model for proarrhythmia risk assessment.* Front Physiol 2017. |
+| TNNP06 | ten Tusscher KH, Panfilov AV. *Alternans and spiral breakup in a human ventricular tissue model.* Am J Physiol Heart Circ Physiol 2006. |
 | Tomek-O'Hara-Rudy 2019 | Tomek J, et al. *Development, calibration, and validation of a novel human ventricular myocyte model in health, disease, and drug block.* eLife 2019. |
-| Grandi-Bers 2010 | Grandi E, Pasqualini FS, Bers DM. *A novel computational model of the human ventricular action potential and Ca transient.* J Mol Cell Cardiol 2010. |
-| Doste 2022 (BARS) | Doste R, et al. (TOR-ORd-BARS implementation; see https://github.com/rdoste/ToR-ORd-BARS). |
+| GB 2010 | Grandi E, Pasqualini FS, Bers DM. *A novel computational model of the human ventricular action potential and Ca transient.* J Mol Cell Cardiol 2010. |
+| Doste 2022 | Doste R, et al. (TOR-ORd-BARS implementation; see https://github.com/rdoste/ToR-ORd-BARS). |
 | Morotti 2021 | Morotti S, et al. *A novel computational human ventricular myocyte model with β-adrenergic signalling and CaMKII activation.* (reference model implementation at the C# repo cited in `Morotti2021.py`). |
 | BPS 2020 / BPSLand 2022 | Bartolucci C, Passini E, Severi S. (BPS-Land 2022 https://pmc.ncbi.nlm.nih.gov/articles/PMC9198403/) |
 
