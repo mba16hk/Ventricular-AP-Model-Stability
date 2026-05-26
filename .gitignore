@@ -1,0 +1,58 @@
+# --- Generated simulation outputs ---
+# Everything under Outputs/ is reproducible by re-running the orchestrator;
+# don't track it (it would balloon the repo).
+Outputs/
+
+# --- Python caches & bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Build / distribution artefacts ---
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+.env
+
+# --- Jupyter notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# --- Type-checker caches ---
+.mypy_cache/
+.ruff_cache/
+
+# --- IDE / editor state ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS clutter ---
+.DS_Store           # macOS
+Thumbs.db           # Windows
+desktop.ini         # Windows
+ehthumbs.db         # Windows
+
+# --- OneDrive auto-files (Windows) ---
+*.tmp
+~$*
+
+# --- Personal data / scratch files ---
+_smoke_*.py
+_test_*/
+*.local.py
