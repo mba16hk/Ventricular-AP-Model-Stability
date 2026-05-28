@@ -159,7 +159,7 @@ If you use this code, please also cite the original papers for whichever models 
 | ORd 2011 | O'Hara T, Virág L, Varró A, Rudy Y. *Simulation of the undiseased human cardiac ventricular action potential.* PLoS Comput Biol 2011. |
 | Dutta 2017 | Dutta S, et al. *Optimization of an in silico cardiac cell model for proarrhythmia risk assessment.* Front Physiol 2017. |
 | TNNP06 | ten Tusscher KH, Panfilov AV. *Alternans and spiral breakup in a human ventricular tissue model.* Am J Physiol Heart Circ Physiol 2006. |
-| Tomek-O'Hara-Rudy 2019 | Tomek J, et al. *Development, calibration, and validation of a novel human ventricular myocyte model in health, disease, and drug block.* eLife 2019. |
+| TOR 2019 | Tomek J, et al. *Development, calibration, and validation of a novel human ventricular myocyte model in health, disease, and drug block.* eLife 2019. |
 | GB 2010 | Grandi E, Pasqualini FS, Bers DM. *A novel computational model of the human ventricular action potential and Ca transient.* J Mol Cell Cardiol 2010. |
 | Doste 2022 | Doste R, et al. (TOR-ORd-BARS implementation; see https://github.com/rdoste/ToR-ORd-BARS). |
 | Morotti 2021 | Morotti S, et al. *A novel computational human ventricular myocyte model with β-adrenergic signalling and CaMKII activation.* (reference model implementation at the C# repo cited in `Morotti2021.py`). |
