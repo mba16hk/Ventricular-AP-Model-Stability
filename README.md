@@ -54,8 +54,7 @@ The model files use `@njit` decorators from [Numba](https://numba.pydata.org/) f
    models = ["Morotti 2021", "TNNP06", "GB 2010", "ORd 2010"]
    protocol = 'paced'        # or 'unpaced'
    cycles = 2000             # number of beats per simulation
-   ISO_conc = 0.1            # μM isoproterenol (only used by Doste/Morotti BARS)
-   BARS = 'True'             # enable β-AR signalling for Doste/Morotti
+   BARS = True             # enable β-AR signalling for Doste/Morotti
    ```
 3. Run the orchestrator:
    ```bash
@@ -105,7 +104,7 @@ Outputs/
 │   ├── Concentration stabilisation plots.png
 │   ├── Ca Transient stabilisation plots.png
 │   ├── AP Upstroke Morphology stabilisation plots.png
-│   └── Chloride Current stabilisation plots.png
+│   └── Chloride Current stabilisation plots.png # Only when Doste o Morotti models have been simuated
 │
 └── Unpaced Plots/
     ├── Strategy A plots.png                              # per-state deviation trajectories
@@ -115,17 +114,6 @@ Outputs/
     ├── stabilisation_summary_by_class.xlsx               # mean/max times aggregated by class
     └── *_heatmap.png                                     # per-class heatmaps
 ```
-
-## How the plotting scripts work
-
-Both `Paced_plots.py` and `Unpaced_plots.py` resolve their input/output paths relative to the script location (no user-editable absolute paths). The pattern in each file:
-
-```python
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR   = os.path.join(_REPO_ROOT, "Outputs", "Paced")        # or "Unpaced"
-OUTPUT_DIR = os.path.join(_REPO_ROOT, "Outputs", "Paced Plots")  # or "Unpaced Plots"
-```
-
 ## About `state_class_mapping.xlsx`
 
 This is a static lookup file shipped with the repo. It has one sheet per model variant, each with two columns:
