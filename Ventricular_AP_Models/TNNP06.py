@@ -15,130 +15,6 @@ from conductances import *
 ## Python code and mathematics from CellML https://models.cellml.org/exposure/de5058f16f829f91a1e4e5990a10ed71/tentusscher_panfilov_2006_a.cellml/@@cellml_codegen/Python
 
 
-# --- Ito / IKs / IKr gating (inlined from former IK_2006.py) ---
-@njit
-def r_inf(V):
-    return 1 / (1 + np.exp((20 - V) / 6))
-
-@njit
-def tau_r(V):
-    return 9.5 * np.exp(-((V + 40) ** 2) / 1800) + 0.8
-
-@njit
-def s_inf(V, cell_type):
-    if cell_type == 'EPI' or cell_type == 'M':
-        return 1 / (1 + np.exp((V + 20) / 5))
-    elif cell_type == 'ENDO':
-        return 1 / (1 + np.exp((V + 28) / 5))
-
-@njit
-def tau_s(V, cell_type):
-    if cell_type == 'EPI' or cell_type == 'M':
-        return 85 * np.exp(-((V + 45) ** 2) / 320) + (5 / (1 + np.exp((V - 20) / 5))) + 3
-    elif cell_type == 'ENDO':
-        return 1000 * np.exp(-((V + 67) ** 2) / 1000) + 8
-
-@njit
-def Xs_inf(V):
-    return 1 / (1 + np.exp((-5 - V) / 14))
-
-@njit
-def alpha_Xs(V):
-    return 1400 / np.sqrt(1 + np.exp((5 - V) / 6))
-
-@njit
-def beta_Xs(V):
-    return 1 / (1 + np.exp((V - 35) / 15))
-
-@njit
-def xr1_inf(V, mutation_K897T):
-    if mutation_K897T:
-        return 1 / (1 + np.exp((-33 - V) / 6))
-    else:
-        return 1 / (1 + np.exp((-26 - V) / 7))
-
-@njit
-def alpha_xr1(V, mutation_K897T):
-    if mutation_K897T:
-        return 657.25 / (1.0 + (np.exp(((-34.37 - V) / 8.93))))
-    else:
-        return 450 / (1 + np.exp((-45 - V) / 10))
-
-@njit
-def beta_xr1(V, mutation_K897T):
-    if mutation_K897T:
-        return 11.04 / (1.0 + (np.exp(((V + 55.11) / 12.8))))
-    else:
-        return 6 / (1 + np.exp((30 + V) / 11.5))
-
-@njit
-def xr2_inf(V, mutation_K897T):
-    if mutation_K897T:
-        return 1.0 / (1.0 + (np.exp(((V + 90.0) / 23.0))))
-    else:
-        return 1 / (1 + np.exp((88 + V) / 24))
-
-@njit
-def alpha_xr2(V, mutation_K897T):
-    if mutation_K897T:
-        return 3.0 / (1.0 + (np.exp(((-58.0 - V) / 20.0))))
-    else:
-        return 3 / (1 + np.exp((-60 - V) / 20))
-
-@njit
-def beta_xr2(V, mutation_K897T):
-    if mutation_K897T:
-        return 1.05 / (1.0 + (np.exp(((V - 59.0) / 22.0))))
-    else:
-        return 1.12 / (1 + np.exp((V - 60) / 20))
-
-
-# --- ICaL gating (inlined from former ICa_2006.py) ---
-@njit
-def alpha_d(V):
-    return 1.4 / (1 + np.exp((-35 - V) / 13)) + 0.25
-
-@njit
-def beta_d(V):
-    return 1.4 / (1 + np.exp((V + 5) / 5))
-
-@njit
-def gamma_d(V):
-    return 1 / (1 + np.exp((50 - V) / 20))
-
-@njit
-def alpha_f(V):
-    return 1102.5 * np.exp(-((V + 27) ** 2) / 225)
-
-@njit
-def beta_f(V):
-    return 200 / (1 + np.exp((13 - V) / 10))
-
-@njit
-def gamma_f(V):
-    return (180 / (1 + np.exp((V + 30) / 10))) + 20
-
-@njit
-def alpha_f2(V):
-    return 562 * np.exp(-((V + 27) ** 2) / 240)
-
-@njit
-def beta_f2(V):
-    return 31 / (1 + np.exp((25 - V) / 10))
-
-@njit
-def gamma_f2(V):
-    return 80 / (1 + np.exp((V + 30) / 10))
-
-@njit
-def tau_fcass(Ca_ss):
-    return (80 / (1 + (Ca_ss / 0.05) ** 2)) + 2
-
-@njit
-def g_inf(Cai):
-    return np.where(Cai <= 0.00035, 1 / (1 + (Cai / 0.00035) ** 6), 1 / (1 + (Cai / 0.00035) ** 16))
-
-
 @njit
 def Istim_TNNP06(time, cycle_length, amplitude, duration):
     if (time % cycle_length <= duration):
@@ -147,7 +23,7 @@ def Istim_TNNP06(time, cycle_length, amplitude, duration):
         return 0
 
 
-def run_TNNP06_model(cycles, cycle_length, cell_type, user_K_conc, amp=-52):
+def run_TNNP06_model(cycles, cycle_length, cell_type, amp=-52):
     model_type = "Ten Tusscher 2006"
     G_Ks       = GKs_conductance(model_type, cell_type)
     G_Kr       = GKr_conductance(model_type, cell_type)
@@ -214,7 +90,7 @@ def run_TNNP06_model(cycles, cycle_length, cell_type, user_K_conc, amp=-52):
     Kbu_fss = 0.00025 #-CC and CellML
     KpCa = 0.0005 #mM
     #External Concentrations - same in CellML and CC
-    Ko= user_K_conc #baseline K conc in TTP is 5.4#mM
+    Ko = 5.4  # mM — baseline extracellular K+ for the TNNP06 model
     Nao = 140#mM
     Cao = 2#mM
 
@@ -372,40 +248,77 @@ def TNNP06_model(t, y,cell_type,mutation_K897T,Gto,GKs,cycle_length, cycles, R, 
     ydot[9] = (jinf-j)/tau_j # correct
     
 
-    #I_CaL - corrected to 2006 - differences in alpha and gamma f2 between CellML and CC (however, differences have no effect on shape of the curve)
-    CaL_exp = np.exp(2*(V-15)*FoRT)#correct
-    ICaL = (GCaL * d*f*f2*fcass*4*((V-15)*(Frdy**2)/RxT))*(0.25*Ca_ss*CaL_exp-Cao)/(CaL_exp-1) # correct changed from 2004 CellML different from paper
-    tau_d = alpha_d(V)*beta_d(V)+gamma_d(V) # correct # gamma_d subtracted in 2004, but added in 2006
-    tau_f = alpha_f(V)+beta_f(V)+gamma_f(V) # tau_f was not a calculated parameter in 2004 
-    tau_f2 = alpha_f2(V)+beta_f2(V)+gamma_f2(V) # tau_f2 was not a calculated parameter in 2004 
+    # I_CaL - corrected to 2006. Gate kinetics inlined from the original alpha/beta/gamma helpers.
+    CaL_exp = np.exp(2*(V-15)*FoRT)
+    ICaL = (GCaL * d*f*f2*fcass*4*((V-15)*(Frdy**2)/RxT))*(0.25*Ca_ss*CaL_exp-Cao)/(CaL_exp-1)
+    # d gate: tau_d = alpha_d * beta_d + gamma_d
+    alpha_d_v = 1.4/(1 + np.exp((-35 - V)/13)) + 0.25
+    beta_d_v  = 1.4/(1 + np.exp((V + 5)/5))
+    gamma_d_v = 1.0/(1 + np.exp((50 - V)/20))
+    tau_d = alpha_d_v * beta_d_v + gamma_d_v
+    # f gate: tau_f = alpha_f + beta_f + gamma_f
+    tau_f = (1102.5*np.exp(-((V + 27)**2)/225)
+             + 200.0/(1 + np.exp((13 - V)/10))
+             + 180.0/(1 + np.exp((V + 30)/10)) + 20.0)
+    # f2 gate: tau_f2 = alpha_f2 + beta_f2 + gamma_f2
+    tau_f2 = (562.0*np.exp(-((V + 27)**2)/240)
+              + 31.0/(1 + np.exp((25 - V)/10))
+              + 80.0/(1 + np.exp((V + 30)/10)))
     dinf = 1/(1+np.exp((-8-V)/7.5))
     finf = 1/(1+np.exp((V+20)/7))
     f2inf = (0.67/(1+np.exp((V+35)/7)))+0.33
     fcassinf = (0.6/(1+(Ca_ss/0.05)**2))+0.4
     ydot[11] = (dinf-d)/tau_d
-    ydot[12] = (finf-f)/tau_f # correct
-    ydot[13] = (f2inf-f2)/tau_f2 #correct
-    ydot[14] = (fcassinf-fcass)/tau_fcass(Ca_ss) # correct
-    
-    
-    # I_ks: Slowly Activating K Current - corrected to 2006 - same as CellMLinvest
-    IKs = GKs*(Xs**2)*V_EKs #correct
-    tau_Xs = alpha_Xs(V)*beta_Xs(V) + 80 # correct # the +80 was not present in the 2004 version
-    ydot[6] = (Xs_inf(V)-Xs)/tau_Xs # correct
-    
-    
-    # I_to: Transient outward K current - No change from 2004 #- same as CellML
-    Ito = Gto *s *r* V_EK #correct
-    ydot[15] = (s_inf(V,cell_type)-s)/tau_s(V,cell_type) #correct
-    ydot[16] = (r_inf(V)-r)/tau_r(V) # correct
-    
-    
-    # I_kr: Rapidly Activating K Current - No change from 2004- same as CellML
-    IKr = GKr * np.sqrt(Ko/5.4)* xr1 * xr2 * V_EK # correct
-    tau_xr1 = alpha_xr1(V,mutation_K897T)*beta_xr1(V,mutation_K897T) #correct
-    tau_xr2 = alpha_xr2(V,mutation_K897T)*beta_xr2(V,mutation_K897T) #correct
-    ydot[4] = (xr1_inf(V,mutation_K897T)-xr1)/tau_xr1 #correct
-    ydot[5] = (xr2_inf(V,mutation_K897T)-xr2)/tau_xr2 #correct
+    ydot[12] = (finf-f)/tau_f
+    ydot[13] = (f2inf-f2)/tau_f2
+    # fcass gate: tau_fcass(Ca_ss) inlined
+    ydot[14] = (fcassinf - fcass) / ((80.0/(1 + (Ca_ss/0.05)**2)) + 2.0)
+
+
+    # I_ks: Slowly Activating K Current - corrected to 2006. Xs gate kinetics inlined.
+    IKs = GKs*(Xs**2)*V_EKs
+    # tau_Xs = alpha_Xs * beta_Xs + 80 (+80 added in 2006)
+    tau_Xs = (1400.0/np.sqrt(1 + np.exp((5 - V)/6))) * (1.0/(1 + np.exp((V - 35)/15))) + 80.0
+    Xs_inf_v = 1.0/(1 + np.exp((-5 - V)/14))
+    ydot[6] = (Xs_inf_v - Xs)/tau_Xs
+
+
+    # I_to: Transient outward K current - s and r gate kinetics inlined; s/tau_s depend on cell_type.
+    Ito = Gto * s * r * V_EK
+    if cell_type == 'EPI' or cell_type == 'M':
+        s_inf_v = 1.0/(1 + np.exp((V + 20)/5))
+        tau_s_v = 85.0*np.exp(-((V + 45)**2)/320) + 5.0/(1 + np.exp((V - 20)/5)) + 3.0
+    else:  # ENDO
+        s_inf_v = 1.0/(1 + np.exp((V + 28)/5))
+        tau_s_v = 1000.0*np.exp(-((V + 67)**2)/1000) + 8.0
+    ydot[15] = (s_inf_v - s) / tau_s_v
+    # r gate
+    r_inf_v = 1.0/(1 + np.exp((20 - V)/6))
+    tau_r_v = 9.5*np.exp(-((V + 40)**2)/1800) + 0.8
+    ydot[16] = (r_inf_v - r) / tau_r_v
+
+
+    # I_kr: Rapidly Activating K Current. xr1 / xr2 gate kinetics inlined; both depend on
+    # whether the K897T mutation flag is set (separate parameter sets).
+    IKr = GKr * np.sqrt(Ko/5.4) * xr1 * xr2 * V_EK
+    if mutation_K897T:
+        xr1_inf_v = 1.0/(1 + np.exp((-33 - V)/6))
+        alpha_xr1_v = 657.25/(1 + np.exp((-34.37 - V)/8.93))
+        beta_xr1_v  = 11.04/(1 + np.exp((V + 55.11)/12.8))
+        xr2_inf_v = 1.0/(1 + np.exp((V + 90.0)/23.0))
+        alpha_xr2_v = 3.0/(1 + np.exp((-58.0 - V)/20.0))
+        beta_xr2_v  = 1.05/(1 + np.exp((V - 59.0)/22.0))
+    else:
+        xr1_inf_v = 1.0/(1 + np.exp((-26 - V)/7))
+        alpha_xr1_v = 450.0/(1 + np.exp((-45 - V)/10))
+        beta_xr1_v  = 6.0/(1 + np.exp((30 + V)/11.5))
+        xr2_inf_v = 1.0/(1 + np.exp((88 + V)/24))
+        alpha_xr2_v = 3.0/(1 + np.exp((-60 - V)/20))
+        beta_xr2_v  = 1.12/(1 + np.exp((V - 60)/20))
+    tau_xr1 = alpha_xr1_v * beta_xr1_v
+    tau_xr2 = alpha_xr2_v * beta_xr2_v
+    ydot[4] = (xr1_inf_v - xr1) / tau_xr1
+    ydot[5] = (xr2_inf_v - xr2) / tau_xr2
     
     
     # I_k1: Time-independent K current - No change from 2004 - same as CellML
@@ -467,52 +380,3 @@ def TNNP06_model(t, y,cell_type,mutation_K897T,Gto,GKs,cycle_length, cycles, R, 
     ydot[0] = -(Iion + I_stim)#/Cm # there is no division by Cm in CellML or CC
     
     return ydot
-
-
-
-
-# def TP_currents(states_df):
-    
-
-# Solve the ODE
-# tspan = (0, cycles*cycle_length)
-# start_time = tm.time()
-# sol = solve_ivp(TNNP06_model, tspan, y0, method='BDF',rtol= 1e-5,max_step = 1) #modifying the max_step to 0.02 does not affect not performance
-# end_time = tm.time()
-# elapsed_time = end_time - start_time
-
-
-# time = sol.t  # Time points
-# solutions = sol.y  # Solution vectors, each row corresponds to a variable
-
-# # Plot each solution vector against time
-# num_variables = solutions.shape[0]  # Number of variables in the system
-
-# y6_n = ["V","Ki","Nai","Cai","xr1","xr2","Xs"]
-# y12_n = ["m","h","j","Ca_ss","d","f"]
-# y18_n = ["f2","fcass","s","r","Ca_SR","R_prime"]
-
-# y_names = np.concatenate([y6_n, y12_n, y18_n])
-
-# i=0
-# name = y_names[i]
-# plt.figure()
-# plt.plot(time, solutions[i], label=name)
-# plt.xlabel('Time')
-# plt.ylabel(f'{name}')
-# plt.title(f'Plot of {name} vs Time')
-# plt.legend()
-# plt.grid()
-# plt.show()
-
-# import numpy as np
-# def test_func(y,z):
-#     x = 2*y
-#     w = 3*z
-#     return [x,w]
-
-# test1 = test_func(2,2)
-# print(test1)
-
-# test2 = test_func(np.array([1,2,3,4]),np.array([1,2,3,4]))
-# print(test2)
