@@ -50,10 +50,8 @@ else:
 amp_override = {'amp': 0} if protocol == 'unpaced' else {}
 
 cycles = 100
-ISO_conc = 0.1
-BARS = 'True'
+BARS = True  # enable beta-adrenergic signalling in Doste / Morotti (set False to disable)
 plot_fig = False
-baseline_K_concs = 5.4
 
 ## Output directory: <repo_root>/Outputs/<Paced|Unpaced>/.
 ## Resolved relative to this script so a fresh clone works without setup.
@@ -63,11 +61,19 @@ dest_dir = os.path.join(_SCRIPT_DIR, "Outputs", "Paced" if protocol == "paced" e
 
 for model in models:
 
-    destination_dir = os.path.join(dest_dir, model)
+    # For Morotti / Doste, the BARS state changes the simulation substantially; tag the
+    # output folder + filenames so a BARS-on run doesn't overwrite a BARS-off run.
+    if model in ("Morotti 2021", "Doste 2022"):
+        bars_tag = " BARS" if BARS else " no BARS"
+        model_label = model + bars_tag
+    else:
+        model_label = model
+
+    destination_dir = os.path.join(dest_dir, model_label)
     os.makedirs(destination_dir, exist_ok=True)
 
     # identify cell types to loop over
-    if model == 'Morotti 2021' or model == "BARS 2022":
+    if model == 'Morotti 2021' or model == "Doste 2022":
         cell_types = ['ENDO', 'EPI']
     else:
         cell_types = ['ENDO', 'M', 'EPI']
@@ -81,23 +87,25 @@ for model in models:
             print(f"Simulating {model} for {cell_type} cells at {cycle_length} ms CL")
 
             if model == "ORd 2010":
-                df, _, stim_duration = run_ORd_Model(cycles, cycle_length, cell_type, baseline_K_concs, **amp_override)
+                df, _, stim_duration = run_ORd_Model(cycles, cycle_length, cell_type, **amp_override)
             elif model == "Dutta 2017":
                 df, _, stim_duration = run_Dutta_Model(cycles, cycle_length, cell_type, **amp_override)
             elif model == "TOR-DCl 2020":
                 df, _, stim_duration = run_TOR_DCl_Model(cycles, cycle_length, cell_type, **amp_override)
             elif model == "TNNP06":
-                df, _, stim_duration = run_TNNP06_model(cycles, cycle_length, cell_type, baseline_K_concs, **amp_override)
-                stim_duration = 0.85
+                df, _, stim_duration = run_TNNP06_model(cycles, cycle_length, cell_type, **amp_override)
+                stim_duration = 0.85 #override default for dv/dtmax calculation
             elif model == "TOR 2019":
                 df, _, stim_duration = run_TOR_Model(cycles, cycle_length, cell_type, **amp_override)
             elif model == "GB 2010":
                 df, _, stim_duration = run_GB_model(cycles, cycle_length, cell_type, **amp_override)
+                stim_duration = 2.5 #override default for dv/dtmax calculation
             elif model == "Doste 2022":
-                df, _, stim_duration = run_Doste_Model(cycles, cycle_length, cell_type, BARS, ISO_conc, **amp_override)
+                df, _, stim_duration = run_Doste_Model(cycles, cycle_length, cell_type, BARS, **amp_override)
             elif model == "Morotti 2021":
                 df, _, stim_duration = run_Morotti_model(cycles, cycle_length, cell_type,
-                    flag_BARS=BARS, camkii_exp=1, stimDur=5, **amp_override)
+                    flag_BARS=BARS, camkii_exp=1, **amp_override)
+                stim_duration = 3.0 #override default for dv/dtmax calculation
             elif model == "BPS 2020":
                 df, _, stim_duration = run_BPS_model(cycles, cycle_length, cell_type, **amp_override)
             elif model == "BPSLand 2022":
@@ -108,7 +116,7 @@ for model in models:
             if protocol == 'unpaced':
                 # Unpaced: save the full df as chunked parquet (all columns, full duration).
                 chunks_dir = os.path.join(destination_dir,
-                                          f'{model} sim chunks {cell_type} at {cycle_length}ms')
+                                          f'{model_label} sim chunks {cell_type} at {cycle_length}ms')
                 os.makedirs(chunks_dir, exist_ok=True)
                 chunksize = 500_000
                 for i in range(0, len(df), chunksize):
@@ -122,7 +130,7 @@ for model in models:
                 # 'Cli' / 'Cl_i' accepted as aliases (TOR_DCl2020 + Doste2022 use 'Cl_i').
                 ion_cols = _resolve_cols(df, ['time', 'Cai', 'Nai', 'Ki', ['Cli', 'Cl_i']])
                 ion_path = os.path.join(destination_dir,
-                                        f'{model} ion trace {cell_type} at {cycle_length}ms.parquet')
+                                        f'{model_label} ion trace {cell_type} at {cycle_length}ms.parquet')
                 df[ion_cols].to_parquet(ion_path, compression="zstd", index=False)
                 print(f"Saved ion trace ({ion_cols}) -> {ion_path}")
 
@@ -132,6 +140,6 @@ for model in models:
                 APD_dfs = plot_APD(df_chunks, state_chunks, start_APD_time, target_voltage,
                                    max_APD_voltage, stim_duration, plot_fig)
                 apd_path = os.path.join(destination_dir,
-                                        f'{model} APD df {cell_type} at {cycle_length}ms.parquet')
+                                        f'{model_label} APD df {cell_type} at {cycle_length}ms.parquet')
                 APD_dfs.to_parquet(apd_path, index=False)
                 print(f"Saved APD parquet: {apd_path}")
