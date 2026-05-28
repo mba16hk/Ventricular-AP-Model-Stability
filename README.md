@@ -150,6 +150,6 @@ If you use this code, please also cite the original papers for whichever models 
 | TOR 2019 | Tomek J, et al. *Development, calibration, and validation of a novel human ventricular myocyte model in health, disease, and drug block.* eLife 2019. |
 | GB 2010 | Grandi E, Pasqualini FS, Bers DM. *A novel computational model of the human ventricular action potential and Ca transient.* J Mol Cell Cardiol 2010. |
 | Doste 2022 | Doste R, et al. (TOR-ORd-BARS implementation; see https://github.com/rdoste/ToR-ORd-BARS). |
-| Morotti 2021 | Morotti S, et al. *A novel computational human ventricular myocyte model with β-adrenergic signalling and CaMKII activation.* (reference model implementation at the C# repo cited in `Morotti2021.py`). |
+| Morotti 2021 | Morotti S, et al. *A novel computational human ventricular myocyte model with β-adrenergic signalling and CaMKII activation.* See original MATLAB implementation in https://github.com/drgrandilab/Morotti-et-al-2021-Cross-species-translators-of-electrophysiological-response/tree/main/Updated%20human%20ventricular%20model |
 | BPS 2020 / BPSLand 2022 | Bartolucci C, Passini E, Severi S. (BPS-Land 2022 https://pmc.ncbi.nlm.nih.gov/articles/PMC9198403/) |
 
