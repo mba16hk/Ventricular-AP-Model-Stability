@@ -13,6 +13,7 @@ Time-to-stabilisation values themselves are computed fresh from simulation data 
 # === imports ===
 import os
 import glob
+import math
 import re
 import pandas as pd
 import numpy as np
@@ -20,6 +21,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 from matplotlib.lines import Line2D
+from matplotlib.ticker import ScalarFormatter
 import matplotlib.lines as mlines
 import seaborn as sns
 from pathlib import Path
@@ -80,6 +82,142 @@ def _format_subscripts(label):
     def repl(match):
         return f"{match.group(1)}$_{{{match.group(2)}}}$"
     return re.sub(r"(\S+)_([^\s]+)", repl, label)
+
+
+def _format_state_title(state_name):
+    """Returns a bold LaTeX string with subscript formatting if the name contains an underscore."""
+    if "_" in state_name:
+        base, sub = state_name.split("_", 1)
+        return rf"$\mathbf{{{base}_{{{sub}}}}}$"
+    else:
+        return rf"$\mathbf{{{state_name}}}$"
+
+
+def state_stabilisation_plot(base_dir):
+    """
+    Plots steady-state stabilisation of all model state variables (no stimulus) across
+    1-3 cell-type subfolders in base_dir. Each state variable gets its own subplot in an 8-column grid.
+    """
+
+    cell_type_dirs = [
+        os.path.join(base_dir, d)
+        for d in os.listdir(base_dir)
+        if os.path.isdir(os.path.join(base_dir, d))
+    ]
+
+    if not (1 <= len(cell_type_dirs) <= 3):
+        raise ValueError("Expected between 1 and 3 cell-type folders.")
+
+    cmap = matplotlib.colormaps["Set2"]
+    colors = {
+        "EPI": cmap(0 / 3),
+        "ENDO": cmap(1 / 3),
+        "M": cmap(2 / 3),
+        "Generic": cmap(4 / 9),
+    }
+
+    allowed_cell_types = set(colors.keys())
+
+    cell_dfs = {}
+
+    for cell_dir in cell_type_dirs:
+
+        # Extract cell type as a STRING (not the regex match object)
+        match = re.search(r"(ENDO|EPI| M |Generic)", os.path.basename(cell_dir))
+        if match is None:
+            raise ValueError(
+                f"Could not detect cell type in folder name: {cell_dir}"
+            )
+
+        cell_type = match.group(1)
+
+        if cell_type not in allowed_cell_types:
+            raise ValueError(f"Unsupported cell type: {cell_type}")
+
+        parquet_files = sorted(glob.glob(os.path.join(cell_dir, "*.parquet")))
+        if not parquet_files:
+            raise ValueError(f"No parquet files found in {cell_dir}")
+
+        df = pd.concat(
+            (pd.read_parquet(f) for f in parquet_files),
+            ignore_index=True
+        )
+
+        # Downsample: keep 1, skip next 5
+        df = df.iloc[::6].reset_index(drop=True)
+
+        cell_dfs[cell_type] = df
+
+    example_df = next(iter(cell_dfs.values()))
+    if "time" not in example_df.columns:
+        raise ValueError("Column 'time' not found.")
+
+    states = [c for c in example_df.columns if c != "time"]
+    n_states = len(states)
+
+    n_cols = 8
+    n_rows = math.ceil(n_states / n_cols)
+
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(4 * n_cols, 4 * n_rows),
+        sharex=False
+    )
+
+    axes = axes.flatten()
+
+    for i, state in enumerate(states):
+        ax = axes[i]
+
+        for ct, df in cell_dfs.items():
+            ax.plot(
+                df["time"],
+                df[state],
+                color=colors[ct],
+                linewidth=1
+            )
+
+        ax.set_title(_format_state_title(state), fontsize=12)
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # Scientific notation without offset
+        formatter = ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True)
+        formatter.set_powerlimits((-3, 3))
+        ax.yaxis.set_major_formatter(formatter)
+        ax.yaxis.get_offset_text().set_visible(False)
+
+        ax.tick_params(axis="x", which="both", labelbottom=True)
+        ax.set_ylabel("")
+
+    for j in range(i + 1, len(axes)):
+        axes[j].axis("off")
+
+    legend_handles = [
+        Line2D([0], [0], color=colors[ct], lw=2, label=ct)
+        for ct in cell_dfs.keys()
+    ]
+
+    fig.legend(
+        handles=legend_handles,
+        loc="upper center",
+        ncol=len(legend_handles),
+        frameon=False,
+        fontsize=12
+    )
+
+    fig.supxlabel(
+        "Time (ms)",
+        fontsize=13,
+        fontweight="bold"
+    )
+
+    plt.tight_layout(rect=[0, 0, 1, 1])
+
+    return fig
 
 
 def compute_stabilisation_time(time, delta, epsilon):
@@ -1038,6 +1176,15 @@ if __name__ == "__main__":
     # ---- Strategy A ----
     figure = StrategyA(DATA_DIR, STRATEGY_A_ORDER)
     _savefig(figure, "Strategy A plots - v6.png")
+
+    # ---- Per-model state stabilisation plots (optional, slow) ----
+    # Uncomment to render one big-grid figure per model showing every state variable's
+    # trajectory across cell types. Requires per-model folders with cell-type subfolders.
+    # state_models = ["Morotti 2021 BARS", "Morotti 2021 no BARS"]
+    # for model in state_models:
+    #     main_dir = os.path.join(DATA_DIR, model)
+    #     figure = state_stabilisation_plot(main_dir)
+    #     _savefig(figure, f"{model} state stabilisation plots.png")
 
     # ---- Compute fresh stabilisation times from current simulation data ----
     subfolders = [
