@@ -122,7 +122,7 @@ def Istim(time, cycle_length,amplitude,duration):
 #
 
 
-def run_ORd_Model(cycles, cycle_length, cell_type, user_K_conc, amp=-80):
+def run_ORd_Model(cycles, cycle_length, cell_type, amp=-80):
   model_type = "O'Hara Rudy 2010"
   G_Ks       = GKs_conductance(model_type, cell_type)
   G_Kr       = GKr_conductance(model_type, cell_type)
@@ -151,7 +151,7 @@ def run_ORd_Model(cycles, cycle_length, cell_type, user_K_conc, amp=-80):
   #External concentration
   Na_ion_conc_o = 140 #mM
   Ca_ion_conc_o = 1.8 #mM
-  K_ion_conc_o = user_K_conc#5.4 #mM baseline K conc in ORD is 5.4
+  K_ion_conc_o = 5.4  # mM — baseline extracellular K+ for the ORd model
 
   # Cell Geometry
   L=0.01 #cm
