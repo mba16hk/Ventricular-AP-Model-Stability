@@ -30,7 +30,11 @@ def I_stimulus(t,cycleLength,Stimdur,amplitude):
 
 # master ODE file
 def run_Morotti_model(cycles, cycleLength, cell_type,
-                      flag_BARS, camkii_exp, stimDur, amp=9.5):
+                      flag_BARS, camkii_exp, amp=9.5):
+    # stimDur: stimulus pulse duration in ms. Hardcoded to 5 ms (standard value used for
+    # ventricular pacing protocols); not exposed because the upstroke is short relative to
+    # the cycle length, so this is rarely varied between experiments.
+    stimDur = 5
     # flag_cam and flag_CaMKII are locked ON to match the C# reference (MasterOde.cs:42-67).
     # Both modules must be active by default; previously these were exposed as parameters.
     flag_cam = 1     # CaM module active
@@ -1032,7 +1036,9 @@ def Morotti_model(t,initial_conds,
         JCaDyad = JCaSL = JCaCyt = 0 
         
         
-    if flag_BARS == "True":
+    if flag_BARS:
+        # Truthy check: accepts boolean True, integer 1, the string "True", etc.
+        # Matches the corresponding Ligtot truthy check at the top of run_Morotti_model.
         ## State variables
         #y[0]-y[38]
         

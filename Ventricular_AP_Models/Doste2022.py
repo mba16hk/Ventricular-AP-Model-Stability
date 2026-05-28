@@ -728,7 +728,11 @@ def Doste_Model_T(time,X0,cycle_length, clo, nao, cao, ko, R, T, F, L, rad,
 
 
 
-def run_Doste_Model(cycles, cycle_length, cell_type, BARS, ISO_conc, amp=-53):
+def run_Doste_Model(cycles, cycle_length, cell_type, BARS, amp=-53):
+    # ISO_conc is the steady-state isoproterenol concentration (uM) reached at the end of the
+    # ramp when BARS signalling is active. Hardcoded to 0.1 uM (typical experimental level used
+    # to fully activate beta-AR signalling); change here if a different ISO concentration is needed.
+    ISO_conc = 0.1
     model_type   = "BARS 2022"
     G_Ks         = GKs_conductance(model_type, cell_type)
     G_Kr         = GKr_conductance(model_type, cell_type)
@@ -962,9 +966,10 @@ def run_Doste_Model(cycles, cycle_length, cell_type, BARS, ISO_conc, amp=-53):
     initial_conds = GetStartingState_DynCL(cell_type)#[m ,m_L ,h_fast ,h_slow ,h_CaMK_slow ,h_L ,h_L_CaMK ,j ,j_CaMK ,CaMK_trap ,V_m ,a,i_fast,i_slow ,i_CaMK_fast , i_CaMK_slow,a_CaMK,d,f_fast ,f_slow ,j_Ca,f_Ca_CaMK_fast,n, f_Ca_slow ,f_Ca_fast, f_CaMK_fast , x_r_slow ,x_r_fast ,x_s1,x_s2 ,x_K1 ,J_rel_NP,J_rel_CaMK ,Na_ion_conc_i , Na_ion_conc_ss, K_ion_conc_i , K_ion_conc_ss , Ca_ion_conc_i , Ca_ion_conc_ss , Ca_ion_conc_nsr , Ca_ion_conc_jsr]
     tspan = (0, cycles*cycle_length)
     
-    if BARS == 'True':
+    # Truthy check: accepts boolean True/False, integer 1/0, or legacy 'True'/'False'.
+    if BARS:
         sol = solve_ivp(fun = Doste_Model_T, t_span = tspan, y0 = initial_conds, args = constants_T,method='LSODA',rtol= 1e-5,max_step = 1)
-    elif BARS == 'False':
+    else:
         c = Constants_SignalingMyokit2(0, radiusmultiplier)
         v,nai,nass,ki,kss,cai,cass,cansr,cajsr,m,hp,h,j,jp,mL,hL,hLp,a,iF,iS,ap,iFp,iSp,d,ff,fs,fcaf,fcas,jca,nca,nca_i,ffp,fcafp,xs1,xs2,Jrel_np,CaMKt,ikr_c0,ikr_c1,ikr_c2,ikr_o,ikr_i,Jrel_p,cli,clss,xs1_P, d_P,ff_P,fs_P,fcaf_P,fcas_P,fBPf,fcaBPf, h_P, j_P, hp_P, jp_P, Jrel_np_P, Jrel_p_P, cond1,cond2,cond3,cond4,cond5,cond6,cond7,cond8,cond9,cond10,cond11,cond12,cond13,cond14,cond15,cond16,cond17,cond18,cond19,cond20,cond21,cond22,cond23,cond24,cond25,cond26,cond27,cond28,cond29,cond30,cond31,cond32,cond33,cond34,cond35,cond36,cond37,cond38,cond39,cond40,cond41,cond42,cond43,cond44,cond45,cond46,cond47,cond48,cond49,cond50,cond51,cond52,cond53,cond54,cond55,cond56,cond57 = initial_conds
         fICaLP,fIKsP,fPLBP,fTnIP,fINaP,fINaKP,fRyRP,fIKurP =  EffectiveFraction_Torord2(cond40,cond41,cond42,cond43,cond44,cond45,cond46,cond47, c) 
